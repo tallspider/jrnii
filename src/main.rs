@@ -5,6 +5,7 @@ use std::fs;
 use std::io::prelude::*;
 use std::io::ErrorKind;
 use dirs::home_dir;
+use chrono::prelude::*;
 
 const DIR_NAME: &str = ".jrnii";
 const FILE_NAME: &str = "jrnii.txt";
@@ -20,16 +21,21 @@ fn main() {
     } 
 
     if args[1] == "-j" {
-        let file_path = parent_path.join(FILE_NAME);
+        let local = Local::now();
+        let date_file_name = local.format("%Y-%m-%d.txt").to_string();
+        let file_path = parent_path.join(date_file_name);
 
         let mut open_opts = match OpenOptions::new()
             .write(true)
             .append(true)
             .open(&file_path) {
-                Err(why) => match why.kind() {
-                    ErrorKind::NotFound => match fs::create_dir(&parent_path) {
+                Err(why) => match why.kind() {  // missing both dir and file or just file
+                    ErrorKind::NotFound => match fs::create_dir(&parent_path) { // try making dir
                         Ok(_) => File::create(&file_path).unwrap(),
-                        Err(e) => panic!("Error creating the directory: {:?}", e),
+                        Err(dir_why) => match dir_why.kind() {  // already has dir, need file
+                            ErrorKind::AlreadyExists => File::create(&file_path).unwrap(),
+                            dir_other => panic!("Error creating directory: {:?}", dir_other),
+                        },
                     },
                     other_error => panic!("Error opening the file: {:?}", other_error)
                 },
