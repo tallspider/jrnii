@@ -4,6 +4,7 @@ use std::fs::OpenOptions;
 use std::fs;
 use std::io::prelude::*;
 use std::io::ErrorKind;
+use std::path::Path;
 use dirs::home_dir;
 use chrono::prelude::*;
 
@@ -20,7 +21,25 @@ fn main() {
         return;
     } 
 
-    if args[1] == "-j" {
+    if args[1] == "-r" {    // read local file 
+        let local_path = Path::new(FILE_NAME);
+        let mut file = match File::open(&local_path) {
+            Err(why) => match why.kind() {
+                ErrorKind::NotFound => {
+                    println!("No local jrnii yet, enter a note after the keyword 'jrnii' to start one");
+                    return;
+                },
+                _ => panic!("could not open local jrnii because: {}", why),
+            },
+            Ok(f) => f,
+        };
+        let mut s = String::new();
+        match file.read_to_string(&mut s) {
+            Err(why) => panic!("has file but could not read because {}", why),
+            Ok(_) => print!("{}", s),
+        }
+
+    } else if args[1] == "-j" { // write to global journal
         let local = Local::now();
         let date_file_name = local.format("%Y-%m-%d.txt").to_string();
         let file_path = parent_path.join(date_file_name);
