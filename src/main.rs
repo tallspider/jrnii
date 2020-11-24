@@ -12,8 +12,10 @@ fn main() {
     } 
 
     match args[1].as_str() {
-        "-r" => jrnii::read_local(),
         "-j" => jrnii::write_global(&parent_path, args),
+        "-r" => jrnii::read_global_from_date(&parent_path, args),
+        "-rl" => jrnii::read_local(),
+        "-rt" => jrnii::read_global_today(&parent_path),
         _ => jrnii::write_local(args),
     }
 }

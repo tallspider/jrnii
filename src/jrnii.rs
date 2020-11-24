@@ -28,6 +28,51 @@ pub fn read_local() {
     }
 }
 
+pub fn read_global_today(parent_path: & std::path::PathBuf) {
+    let local = Local::now();
+    let date_file_name = local.format("%Y-%m-%d.txt").to_string();
+    let file_path = parent_path.join(date_file_name);
+
+    let mut file = match File::open(&file_path) {
+        Err(why) => match why.kind() {
+            ErrorKind::NotFound => {
+                println!("no jrnii entry from today");
+                return;
+            },
+            _ => panic!("could not open today's jrnii: {}", why),
+        },
+        Ok(f) => f,
+    };
+    let mut s = String::new();
+    match file.read_to_string(&mut s) {
+        Err(why) => panic!("file found but cannot read: {}", why),
+        Ok(_) => print!("{}", s),
+    }
+}
+
+pub fn read_global_from_date(parent_path: & std::path::PathBuf, args: Vec<String>) {
+    let mut date_file_name = args[2].clone();
+    date_file_name.push_str(".txt");
+
+    let file_path = parent_path.join(date_file_name);
+
+    let mut file = match File::open(&file_path) {
+        Err(why) => match why.kind() {
+            ErrorKind::NotFound => {
+                println!("Format: jrnii -r yyyy-mm-dd");
+                return;
+            },
+            _ => panic!("could not open the dated jrnii: {}", why),
+        },
+        Ok(f) => f,
+    };
+    let mut s = String::new();
+    match file.read_to_string(&mut s) {
+        Err(why) => panic!("file found but cannot read: {}", why),
+        Ok(_) => print!("{}", s),
+    }
+}
+
 pub fn write_global(parent_path: & std::path::PathBuf, args: Vec<String>) {
     let local = Local::now();
     let date_file_name = local.format("%Y-%m-%d.txt").to_string();
